@@ -1,0 +1,669 @@
+using System;
+
+using System.Text;
+
+using System.IO;
+
+
+
+
+
+namespace ConsoleApplication54
+
+{
+
+    class Program
+
+    {
+
+        static void Main(string[] args)
+
+        {
+
+            long telefono = 0;
+
+            int largo;
+
+            string mensaje;
+
+            bool continuar = true;
+
+            string puerto = "";
+
+            string puerto2 = "";
+
+            string checkpuerto = "";
+
+            string linea = "";
+
+            string pathdlist = "";
+
+            string pathq = "";
+
+            string nombrearch = "";
+
+            string nombrearch2 = "";
+
+            int contador = 0;
+
+            string tecla = "";
+
+            string carpeta;
+
+            string carpeta2;
+
+            bool eleccion = false;
+
+
+
+            //Determinar si la carpeta de instalacion del programa es ITCSM o NOW SMS
+
+            DirectoryInfo carpetasms = new DirectoryInfo(@"C:\Archivos de programa\ITCSM");
+
+
+
+            if (carpetasms.Exists == false)
+
+                carpeta = "NowSMS";
+
+            else
+
+                carpeta = "ITCSM";
+
+
+
+            //Determinar si la carpeta de las agendas es DList o DLists
+
+            DirectoryInfo carpetaagenda = new DirectoryInfo(@"C:\Archivos de programa\" + carpeta + @"\DLists");
+
+
+
+            if (carpetaagenda.Exists == false)
+
+                carpeta2 = "DList";
+
+            else
+
+                carpeta2 = "DLists";
+
+
+
+            //Preguntar si se desea cargar mas de un puerto a la vez
+
+            Console.WriteLine("Desea cargar mas de un puerto a la vez? Presione Y=si N=no");
+
+            if (Console.ReadLine() == "Y")
+
+                eleccion = true;
+
+            else
+
+                eleccion = false;
+
+
+
+
+
+            while ((continuar == true) && (eleccion == false))
+
+            {
+
+                //Ingreso del texto
+
+                Console.WriteLine("Ingrese el texto del mensaje");
+
+                mensaje = Console.ReadLine();
+
+
+
+                //Revision del largo del mensaje
+
+                largo = mensaje.Length;
+
+                while (largo > 148)
+
+                {
+
+                    Console.WriteLine("El mensaje es demasiado largo, ingrese uno nuevo");
+
+                    Console.WriteLine();
+
+                    Console.WriteLine("Ingrese el texto del mensaje");
+
+                    mensaje = Console.ReadLine();
+
+                    largo = mensaje.Length;
+
+                }
+
+
+
+                //Ingresar y armar el path del puerto a cargar
+
+                Console.WriteLine("Ingrese el numero del puerto");
+
+                puerto = "COM " + Console.ReadLine();
+
+                puerto2 = puerto.Replace(" ", "");
+
+
+
+                DirectoryInfo carpetadlist = new DirectoryInfo(@"C:\Archivos de programa\" + carpeta + @"\" + carpeta2 + @"\" + puerto);
+
+
+
+                //Se revisa que no se cargue dos veces consecutivas
+
+                if (puerto2 == checkpuerto)
+
+                {
+
+                    string repetido = "H";
+
+                    Console.WriteLine("Este puerto ya se cargo, desea volver a cargarlo? Presione Y para cargar o N para terminar");
+
+                    repetido = Console.ReadLine();
+
+                    while (repetido != "Y")
+
+                    {
+
+                        switch (repetido)
+
+                        {
+
+                            case "N":
+
+                                Environment.Exit(0);
+
+                                break;
+
+                            case "Y":
+
+                                break;
+
+                            default:
+
+                                if ((repetido != "N") && (repetido != "Y"))
+
+                                {
+
+                                    Console.WriteLine("{0} no es una opcion valida", repetido);
+
+                                    Console.WriteLine();
+
+                                    Console.WriteLine("Seleccione Y para continuar o N para terminar");
+
+                                    repetido = Console.ReadLine();
+
+                                }
+
+                                break;
+
+                        }
+
+
+
+                    }
+
+
+
+                }
+
+
+
+                checkpuerto = puerto2;
+
+
+
+                //Si el directorio no existe se termina el proceso
+
+                if (carpetadlist.Exists == false)
+
+                {
+
+                    Console.WriteLine("No existe el puerto {0} para este equipo o no existe la carpeta", puerto);
+
+                    Console.ReadKey();
+
+                    Environment.Exit(0);
+
+                }
+
+
+
+                //Consulta por si hay mas de dos agendas
+
+                byte contadorA = 0;
+
+                foreach (var b in carpetadlist.GetFiles("*.txt"))
+
+                {
+
+                    contadorA++;
+
+                }
+
+
+
+                if (contadorA > 1)
+
+                {
+
+                    Console.WriteLine("La carpeta contiene mas de una agenda");
+
+                    foreach (var b in carpetadlist.GetFiles("*.txt"))
+
+                    {
+
+                        Console.WriteLine(b.Name);
+
+                    }
+
+                    string consulta = "";
+
+                    Console.WriteLine();
+
+                    Console.WriteLine("Seleccione Y para continuar o N para terminar");
+
+                    consulta = Console.ReadLine();
+
+                    while (consulta != "Y")
+
+                    {
+
+                        switch (consulta)
+
+                        {
+
+                            case "N":
+
+                                Environment.Exit(0);
+
+                                break;
+
+                            case "Y":
+
+                                break;
+
+                            default:
+
+                                if ((consulta != "N") && (consulta != "Y"))
+
+                                {
+
+                                    Console.WriteLine("{0} no es una opcion valida", consulta);
+
+                                    Console.WriteLine();
+
+                                    Console.WriteLine("Seleccione Y para continuar o N para terminar");
+
+                                    consulta = Console.ReadLine();
+
+                                }
+
+                                break;
+
+                        }
+
+                    }
+
+
+
+                }
+
+                //Busqueda del txt
+
+                foreach (var z in carpetadlist.GetFiles("*.txt"))
+
+                {
+
+                    nombrearch = z.Name;
+
+                    nombrearch2 = nombrearch.Replace(".txt", ".req");
+
+                    pathdlist = @"C:\Archivos de programa\" + carpeta + @"\" + carpeta2 + @"\" + puerto + @"\" + nombrearch;
+
+
+
+                    //Creacion de la carpeta COM dentro de Q
+
+                    pathq = @"C:\Archivos de programa\" + carpeta + @"\Q\" + puerto + @"\";
+
+                    DirectoryInfo carpetaq = Directory.CreateDirectory(pathq);
+
+
+
+                    //Lectura de la agenda y confeccion del mensaje
+
+                    System.IO.StreamReader agenda = new System.IO.StreamReader(pathdlist);
+
+                    while ((linea = agenda.ReadLine()) != null)
+
+                    {
+
+                        telefono = long.Parse(linea);
+
+                        StreamWriter datos = new StreamWriter(pathq + contador + "-" + nombrearch2, true, Encoding.ASCII);
+
+                        datos.WriteLine("[SMS]");
+
+                        datos.WriteLine("SubmitUser={0}", puerto);
+
+                        datos.WriteLine("SubmittedBy=127.0.0.1");
+
+                        datos.WriteLine("Sender={0}", puerto2);
+
+                        datos.WriteLine("Data={0} {1}", telefono, mensaje);
+
+                        datos.WriteLine("PhoneNumber={0}", telefono);
+
+                        datos.Close();
+
+                        contador++;
+
+                        Console.WriteLine(contador);
+
+                    }
+
+
+
+                    contador = 0;
+
+                }
+
+
+
+                //Advertencia si la carpeta DList esta vacia
+
+                if (nombrearch == "")
+
+                    Console.WriteLine("No hay ningun agenda cargada en el puerto {0}", puerto2);
+
+
+
+                Console.WriteLine();
+
+                Console.WriteLine("Desea cargar otro puerto? presione Y = si, N = no");
+
+                tecla = Console.ReadLine();
+
+                Console.Clear();
+
+
+
+                if (tecla == "Y")
+
+                    continuar = true;
+
+                else
+
+                    continuar = false;
+
+            }
+
+
+
+            //Cargar de a mas de un com
+
+            while ((continuar == true) && (eleccion == true))
+
+            {
+
+                //Ingreso del texto
+
+                Console.WriteLine("Ingrese el texto del mensaje");
+
+                mensaje = Console.ReadLine();
+
+
+
+                //Revision del largo del mensaje
+
+                largo = mensaje.Length;
+
+                while (largo > 148)
+
+                {
+
+                    Console.WriteLine("El mensaje es demasiado largo, ingrese uno nuevo");
+
+                    Console.WriteLine();
+
+                    Console.WriteLine("Ingrese el texto del mensaje");
+
+                    mensaje = Console.ReadLine();
+
+                    largo = mensaje.Length;
+
+                }
+
+
+
+                byte numero1, numero2;
+
+                Console.WriteLine("Ingrese el primer puerto a cargar");
+
+                numero1 = byte.Parse(Console.ReadLine());
+
+                Console.WriteLine("Ingrese el ultimo puerto a cargar");
+
+                numero2 = byte.Parse(Console.ReadLine());
+
+
+
+                for (byte i = numero1; i <=numero2;i++)
+
+                {
+
+                    ////Ingresar y armar el path del puerto a cargar
+
+                    //Console.WriteLine("Ingrese el numero del puerto");
+
+                    puerto = "COM " + i;
+
+                    puerto2 = puerto.Replace(" ", "");
+
+
+
+                    DirectoryInfo carpetadlist = new DirectoryInfo(@"C:\Archivos de programa\" + carpeta + @"\" + carpeta2 + @"\" + puerto);
+
+
+
+                    //Si el directorio no existe se termina el proceso
+
+                    if (carpetadlist.Exists == false)
+
+                    {
+
+                        Console.WriteLine("No existe el puerto {0} para este equipo o no existe la carpeta", puerto);
+
+                        Console.ReadKey();
+
+                        Environment.Exit(0);
+
+                    }
+
+
+
+                    //Consulta por si hay mas de dos agendas
+
+                    byte contadorA = 0;
+
+                    foreach (var b in carpetadlist.GetFiles("*.txt"))
+
+                    {
+
+                        contadorA++;
+
+                    }
+
+
+
+                    if (contadorA > 1)
+
+                    {
+
+                        Console.WriteLine("La carpeta contiene mas de una agenda");
+
+                        foreach (var b in carpetadlist.GetFiles("*.txt"))
+
+                        {
+
+                            Console.WriteLine(b.Name);
+
+                        }
+
+                        string consulta = "";
+
+                        Console.WriteLine();
+
+                        Console.WriteLine("Seleccione Y para continuar o N para terminar");
+
+                        consulta = Console.ReadLine();
+
+                        while (consulta != "Y")
+
+                        {
+
+                            switch (consulta)
+
+                            {
+
+                                case "N":
+
+                                    Environment.Exit(0);
+
+                                    break;
+
+                                case "Y":
+
+                                    break;
+
+                                default:
+
+                                    if ((consulta != "N") && (consulta != "Y"))
+
+                                    {
+
+                                        Console.WriteLine("{0} no es una opcion valida", consulta);
+
+                                        Console.WriteLine();
+
+                                        Console.WriteLine("Seleccione Y para continuar o N para terminar");
+
+                                        consulta = Console.ReadLine();
+
+                                    }
+
+                                    break;
+
+                            }
+
+                        }
+
+
+
+                    }
+
+
+
+                    //Busqueda del txt
+
+                    foreach (var z in carpetadlist.GetFiles("*.txt"))
+
+                    {
+
+                        nombrearch = z.Name;
+
+                        nombrearch2 = nombrearch.Replace(".txt", ".req");
+
+                        pathdlist = @"C:\Archivos de programa\" + carpeta + @"\" + carpeta2 + @"\" + puerto + @"\" + nombrearch;
+
+
+
+                        //Creacion de la carpeta COM dentro de Q
+
+                        pathq = @"C:\Archivos de programa\" + carpeta + @"\Q\" + puerto + @"\";
+
+                        DirectoryInfo carpetaq = Directory.CreateDirectory(pathq);
+
+
+
+                        //Lectura de la agenda y confeccion del mensaje
+
+                        System.IO.StreamReader agenda = new System.IO.StreamReader(pathdlist);
+
+                        while ((linea = agenda.ReadLine()) != null)
+
+                        {
+
+                            telefono = long.Parse(linea);
+
+                            StreamWriter datos = new StreamWriter(pathq + contador + "-" + nombrearch2, true, Encoding.ASCII);
+
+                            datos.WriteLine("[SMS]");
+
+                            datos.WriteLine("SubmitUser={0}", puerto);
+
+                            datos.WriteLine("SubmittedBy=127.0.0.1");
+
+                            datos.WriteLine("Sender={0}", puerto2);
+
+                            datos.WriteLine("Data={0} {1}", telefono, mensaje);
+
+                            datos.WriteLine("PhoneNumber={0}", telefono);
+
+                            datos.Close();
+
+                            contador++;
+
+                            Console.WriteLine(contador);
+
+                        }
+
+
+
+                        contador = 0;
+
+                    }
+
+
+
+                    //Advertencia si la carpeta DList esta vacia
+
+                    if (nombrearch == "")
+
+                        Console.WriteLine("No hay ningun agenda cargada en el puerto {0}", puerto2);
+
+                }
+
+
+
+                Console.WriteLine();
+
+
+
+                Console.WriteLine("Desea cargar otro puerto? presione Y = si, N = no");
+
+                tecla = Console.ReadLine();
+
+                Console.Clear();
+
+
+
+                if (tecla == "Y")
+
+                    continuar = true;
+
+                else
+
+                    continuar = false;
+
+            }
+
+        }
+
+    }
+
+}
